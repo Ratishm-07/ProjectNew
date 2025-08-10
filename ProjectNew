@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Result Management System</title>
+<h1>Enter Student Details like Rollno.of 24MCS019 for Getting Output</h1>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0; padding: 0;
+        background: #f7f7f7;
+    }
+    .container {
+        max-width: 900px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+        margin-top: 0;
+    }
+    nav a {
+        margin-right: 12px;
+        text-decoration: none;
+        color: #2b6cb0;
+        font-weight: bold;
+    }
+    input, select, button {
+        padding: 8px;
+        margin: 4px 0 12px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    button {
+        background: #2b6cb0;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+    }
+    th, td {
+        border: 1px solid #eee;
+        padding: 8px;
+        text-align: left;
+    }
+    .notice {
+        background: #e6fffa;
+        border-left: 4px solid #2f855a;
+        padding: 8px;
+        margin-bottom: 12px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Student Result Management</h1>
+    <nav>
+        <a href="#" onclick="showSection('home')">Home</a>
+        <a href="#" onclick="showSection('students')">Students</a>
+        <a href="#" onclick="showSection('results')">Results</a>
+    </nav>
+
+    <!-- Home Section -->
+    <section id="home">
+        <h2>Find Result</h2>
+        <input type="text" id="searchRoll" placeholder="Enter Roll No">
+        <button onclick="searchResult()">Search</button>
+        <div id="searchOutput"></div>
+    </section>
+
+    <!-- Students Section -->
+    <section id="students" style="display:none;">
+        <h2>Add Student</h2>
+        <input type="text" id="studentRoll" placeholder="Roll No">
+        <input type="text" id="studentName" placeholder="Name">
+        <input type="text" id="studentClass" placeholder="Class">
+        <input type="date" id="studentDOB">
+        <button onclick="addStudent()">Add Student</button>
+
+        <h2>All Students</h2>
+        <table id="studentTable">
+            <tr><th>Roll No</th><th>Name</th><th>Class</th><th>DOB</th></tr>
+        </table>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results" style="display:none;">
+        <h2>Add Result</h2>
+        <input type="text" id="resultRoll" placeholder="Student Roll No">
+        <input type="text" id="resultSubject" placeholder="Subject">
+        <input type="number" id="resultMarks" placeholder="Marks">
+        <input type="number" id="resultMax" placeholder="Max Marks" value="100">
+        <input type="date" id="resultDate">
+        <button onclick="addResult()">Add Result</button>
+
+        <h2>All Results</h2>
+        <table id="resultTable">
+            <tr><th>Roll No</th><th>Subject</th><th>Marks</th><th>Max</th><th>Date</th></tr>
+        </table>
+    </section>
+</div>
+
+<script>
+    let students = JSON.parse(localStorage.getItem('students') || '[]');
+    let results = JSON.parse(localStorage.getItem('results') || '[]');
+
+    function saveData() {
+        localStorage.setItem('students', JSON.stringify(students));
+        localStorage.setItem('results', JSON.stringify(results));
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        if (id === 'students') renderStudents();
+        if (id === 'results') renderResults();
+    }
+
+    function addStudent() {
+        let roll = document.getElementById('studentRoll').value.trim();
+        let name = document.getElementById('studentName').value.trim();
+        let cls = document.getElementById('studentClass').value.trim();
+        let dob = document.getElementById('studentDOB').value;
+
+        if (!roll || !name) return alert("Roll No and Name required!");
+        if (students.find(s => s.roll === roll)) return alert("Student already exists!");
+
+        students.push({ roll, name, class: cls, dob });
+        saveData();
+        renderStudents();
+        alert("Student added!");
+    }
+
+    function renderStudents() {
+        let table = document.getElementById('studentTable');
+        table.innerHTML = '<tr><th>Roll No</th><th>Name</th><th>Class</th><th>DOB</th></tr>';
+        students.forEach(s => {
+            table.innerHTML += `<tr>
+                <td>${s.roll}</td>
+                <td>${s.name}</td>
+                <td>${s.class}</td>
+                <td>${s.dob}</td>
+            </tr>`;
+        });
+    }
+
+    function addResult() {
+        let roll = document.getElementById('resultRoll').value.trim();
+        let subject = document.getElementById('resultSubject').value.trim();
+        let marks = parseInt(document.getElementById('resultMarks').value);
+        let max = parseInt(document.getElementById('resultMax').value);
+        let date = document.getElementById('resultDate').value;
+
+        if (!students.find(s => s.roll === roll)) return alert("Student not found!");
+        if (!subject || isNaN(marks)) return alert("Invalid input!");
+
+        results.push({ roll, subject, marks, max, date });
+        saveData();
+        renderResults();
+        alert("Result added!");
+    }
+
+    function renderResults() {
+        let table = document.getElementById('resultTable');
+        table.innerHTML = '<tr><th>Roll No</th><th>Subject</th><th>Marks</th><th>Max</th><th>Date</th></tr>';
+        results.forEach(r => {
+            table.innerHTML += `<tr>
+                <td>${r.roll}</td>
+                <td>${r.subject}</td>
+                <td>${r.marks}</td>
+                <td>${r.max}</td>
+                <td>${r.date}</td>
+            </tr>`;
+        });
+    }
+
+    function searchResult() {
+        let roll = document.getElementById('searchRoll').value.trim();
+        let student = students.find(s => s.roll === roll);
+        let output = document.getElementById('searchOutput');
+        if (!student) {
+            output.innerHTML = `<div class="notice">No student found with roll ${roll}</div>`;
+            return;
+        }
+        let studentResults = results.filter(r => r.roll === roll);
+        if (studentResults.length === 0) {
+            output.innerHTML = `<div class="notice">No results for ${student.name}</div>`;
+            return;
+        }
+        let html = `<h3>Results for ${student.name} (${student.roll})</h3>
+        <table><tr><th>Subject</th><th>Marks</th><th>Max</th><th>Date</th></tr>`;
+        studentResults.forEach(r => {
+            html += `<tr>
+                <td>${r.subject}</td>
+                <td>${r.marks}</td>
+                <td>${r.max}</td>
+                <td>${r.date}</td>
+            </tr>`;
+        });
+        html += '</table>';
+        output.innerHTML = html;
+    }
+</script>
+
+</body>
+</html>
